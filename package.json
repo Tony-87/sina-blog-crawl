@@ -1,0 +1,23 @@
+{
+  "name": "sina-blog-crawl",
+  "version": "1.0.0",
+  "description": "新浪博客文章采集",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tony-87/sina-blog-crawl.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tony-87/sina-blog-crawl/issues"
+  },
+  "homepage": "https://github.com/Tony-87/sina-blog-crawl#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "request": "^2.88.0"
+  }
+}
