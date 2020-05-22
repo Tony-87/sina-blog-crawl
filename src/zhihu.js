@@ -38,7 +38,7 @@ async function getOnePageData(page) {
             htmlContent:item.content,
             content:item.content.replace(/<\/p>/g,'</p>\r\n').replace(/<\/?.+?>/g,"")
         }
-        console.log('');
+        console.log(page,'-',item.title);
         
         saveFile(article)
     }) 
