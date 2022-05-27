@@ -1,115 +1,106 @@
 var fs = require('fs'),
-    cheerio = require('cheerio'),
-    crawl = require('./crawl.js'),
-    forumId = '',
-    totalPage = 1;
+  cheerio = require('cheerio'),
+  crawl = require('./crawl.js'),
+  totalPage = 1596
 var blogId = '',
-    mdFile = './data/' + blogId + '.MD',
-    htmlFile = './data/' + blogId + '.html',
-    txtFile = './data/' + blogId + '.txt';
+  mdFile = './data/' + blogId + '.MD',
+  htmlFile = './data/' + blogId + '.html',
+  txtFile = './data/' + blogId + '.txt'
 
-
-async function getOnePageData (page) {
-    //收集一页数据，保存到文件
-    var url = 'https://www.taoguba.com.cn/Article/'+forumId+'/'+page
-    console.log('url',url);
-    let body = await crawl(url)
-    $ = cheerio.load(body)
-    console.log('body',body);
-    let pageText = $(".t_page01 span").eq(2).text()
-    console.log('pageText',pageText)
-    return
-    totalPage = parseInt(pageText.match(/\d+/)[0])
-    if (page == 1) {
-        fs.writeFileSync(mdFile, ' ')
-        fs.writeFileSync(htmlFile, ' ' )
-        fs.writeFileSync(txtFile, ' ')
+async function getOnePageData(page) {
+  if (page == 1) {
+    var htmlStyleStr = `<style>
+    *{font-size: 18px;}
+    p{font-size:18px;}
+    body{width: 60vw;}
+    h1{font-weight: bold;color:darkviolet}
+    .data-box{
+        border-top:1px solid #f00;
     }
-    var pageLinks = getPageLinks(body)
+    img{width:300px;} 
+    div{display:inline-block;}
+    div+div{margin-left:10px;}
+    </style>`
+    fs.writeFileSync(mdFile, ' ')
+    fs.writeFileSync(htmlFile, htmlStyleStr)
+    fs.writeFileSync(txtFile, ' ')
+  }
 
-    for (var i = 0; i < pageLinks.length; i++) {
-        
-        var fileName = pageLinks[i].match(/blog_\w+/)[0];
-        let cacheFile = './cache/'+fileName+'.html'
-        let detailHtml = ''
-        if(fs.existsSync(cacheFile)){
-            detailHtml = fs.readFileSync(cacheFile).toString('utf-8')
-        }
-        else{
-            detailHtml = await crawl(pageLinks[i])
-            fs.writeFileSync(cacheFile,detailHtml)
-        }
-        
+  //收集一页数据，保存到文件
+  var url = 'https://www.taoguba.com.cn/Article/' + blogId + '/' + page
+  console.log('url', url)
 
-        var articleJson = getArticle(detailHtml, pageLinks[i]);
-        saveFile(articleJson)
-    }
-    console.log(page)
+  let detailHtml = ''
+  let cacheFile = './cache/tgb_' + blogId + '_' + page + '.html'
+  if (fs.existsSync(cacheFile)) {
+    detailHtml = fs.readFileSync(cacheFile).toString('utf-8')
+  } else {
+    detailHtml = await crawl(url)
+    fs.writeFileSync(cacheFile, detailHtml)
+  }
+  var articleJson = getArticle(detailHtml)
+  saveFile(articleJson)
 }
-function saveFile (articleJson) {
-    let { title, link, time, tags, category, content } = articleJson;
-
-    let html = `<h2>${title}</h2>
-               <a href="${link}" target="_blank">${time}</a>
-               <div> ${tags} ; ${category} </div>
-               <article>
-               ${content}
-               </article>
-              `;
-    let md = '## ' + title + '\r\n'
-        + ' [' + time + '](' + link + ')\r\n '
-        + '`' + tags + '；' + category + ') ` \r\n \t \r\n'
-        + '> ' + content + '  \r\n'
-        + ('-'.repeat(50)) + '\r\n';
-    let txt = title + '\r\n' + time + '\r\n' + link + '\r\n' + tags + ';' + category + '\r\n\t\r\n'
-        + content + '\r\n' + ('-'.repeat(50)) + '\r\n';
-
-    fs.appendFileSync(htmlFile, html);
-    fs.appendFileSync(mdFile, md)
-    fs.appendFileSync(txtFile, txt)
+function saveFile(articleJson) {
+  var htmlStr = ''
+  articleJson.forEach((item) => {
+    htmlStr += '<hr>'
+    htmlStr += '<h1>' + item.time + '</h1>'
+    htmlStr += '<p class="content_p">' + item.html + '</p>'
+  })
+  fs.appendFileSync(htmlFile, htmlStr)
+  //   fs.appendFileSync(mdFile, md)
+  //   fs.appendFileSync(txtFile, txt)
 }
-//获取一页的所有文章链接
-function getPageLinks (body) {
-    var $ = cheerio.load(body);
-    var pageLinks = []
-    $('.articleList .articleCell .atc_title a').each(function (index, item) {
-        pageLinks.push($(item).prop('href'))
+
+function getArticle(articalBody) {
+  var $ = cheerio.load(articalBody)
+
+  var res = []
+
+  var ustrs = $('[ustr="1116585"]')
+//   console.log(ustrs[30]);
+//   console.log($.html(ustrs[30]));
+//   console.log(ustrs.length)
+//   console.log(ustrs[100].html());
+  for (let i = 0; i < ustrs.length; i++) {
+    var time = $(ustrs[i]).find('.user-data-time .pcyclspan').text()
+    var content = $.html($(ustrs[i]).find('.pcnr_wz'))
+    content = content.replaceAll('class="lazy" src="placeHolder.png" src2','src')
+    content = content.replaceAll('<br>','')
+    content = content.replaceAll('onload="javascript:if(this.width>760)this.width=760"','')
+    content = content.replaceAll('class="p_wz"','')
+    content = content.replaceAll('style="margin:0 auto;padding-left: 16px;"','')
+    content = content.replaceAll('align="center"','')
+    content = content.replaceAll('data-type="contentImage"','')
+    // content = content.replaceAll('class="pcnr_wz"','')
+    content = content.replaceAll('onclick="opennewimg(this)"','')
+    content = content.replace(/data-original="[\w:\/\."]*/gi,'')
+    content = content.replace(/\r\n/,'')
+    // console.log(time);
+    // console.log(content);
+    res.push({
+      time: time,
+      html: content,
     })
-    return pageLinks;
-}
+  }
 
-function getArticle (articalBody, link) {
-    var $ = cheerio.load(articalBody);
-    var title = $('#articlebody .articalTitle h2').text().trim();
-    var time = $('#articlebody .articalTitle .time').text().trim();
-    var content = $('#articlebody .articalContent').text().trim();
-    var abc = $("#sina_keyword_ad_area .SG_txtb")[0]
-    var tags = $("#sina_keyword_ad_area .blog_tag").text().trim().replace(/\s/g, '')
-    var category = $("#sina_keyword_ad_area .blog_class").text().trim().replace(/\s/g, '')
-    return {
-        title, time, link,
-        tags, category, content
-    }
-    // return '## '+ title + '\r\n' 
-    //        +' [' + time + ']('+ link +')\r\n ' 
-    //        +'`' + tags + '；'+ category +') ` \r\n \t \r\n' 
-    //        + '> ' + content + '  \r\n' 
-    //        + ('-'.repeat(50)) + '\r\n';
+  return res
 }
 
 //帖子ID
-async function main (id) {
-    forumId = id
-    mdFile = './data/' + id + '.MD'
-    htmlFile = './data/' + id + '.html'
-    txtFile = './data/' + id + '.txt'
+async function main(id) {
+  blogId = id
+  mdFile = './data/' + id + '.MD'
+  htmlFile = './data/' + id + '.html'
+  txtFile = './data/' + id + '.txt'
 
-    await getOnePageData(1)
-    if (totalPage > 1) {
-        for (var i = 2; i <= totalPage; i++) {
-            await getOnePageData(i)
-        }
+  await getOnePageData(1)
+   
+  if (totalPage > 1) {
+    for (var i = 2; i <= totalPage; i++) {
+      await getOnePageData(i)
     }
+  }
 }
 module.exports = main
- 

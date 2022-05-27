@@ -14,5 +14,5 @@ const taoguba = require('./src/taoguba.js')
 
 
 
-taoguba(1477629)//forumId
+taoguba(1477629)//blogId
  
