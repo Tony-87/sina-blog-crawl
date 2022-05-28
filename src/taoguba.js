@@ -9,18 +9,7 @@ var blogId = '',
 
 async function getOnePageData(page) {
   if (page == 1) {
-    var htmlStyleStr = `<style>
-    *{font-size: 18px;}
-    p{font-size:18px;}
-    body{width: 60vw;}
-    h1{font-weight: bold;color:darkviolet}
-    .data-box{
-        border-top:1px solid #f00;
-    }
-    img{width:300px;} 
-    div{display:inline-block;}
-    div+div{margin-left:10px;}
-    </style>`
+    var htmlStyleStr = `<style>*{font-size: 18px;}h1{font-weight: bold;color:darkviolet;border-top:solid 1px #000;}div>img{width:350px;}div{display:inline-block;}div+div{margin-left:10px;}</style>`
     fs.writeFileSync(mdFile, ' ')
     fs.writeFileSync(htmlFile, htmlStyleStr)
     fs.writeFileSync(txtFile, ' ')
@@ -44,9 +33,13 @@ async function getOnePageData(page) {
 function saveFile(articleJson) {
   var htmlStr = ''
   articleJson.forEach((item) => {
-    htmlStr += '<hr>'
-    htmlStr += '<h1>' + item.time + '</h1>'
-    htmlStr += '<p class="content_p">' + item.html + '</p>'
+    htmlStr+= `
+    <section>
+        <h1>${item.time}</h1>
+        ${item.html}
+      </section>`
+    // htmlStr += '<h1>' + item.time + '</h1>'
+    // htmlStr += '<section>' + item.html + '</section>'
   })
   fs.appendFileSync(htmlFile, htmlStr)
   //   fs.appendFileSync(mdFile, md)
@@ -65,7 +58,15 @@ function getArticle(articalBody) {
 //   console.log(ustrs[100].html());
   for (let i = 0; i < ustrs.length; i++) {
     var time = $(ustrs[i]).find('.user-data-time .pcyclspan').text()
+    var text = $(ustrs[i]).find('.pcnr_wz').text().trim()
+    // console.log(text)
+    if(['下班。。。','打卡！'].includes(text)){
+      continue
+    }
     var content = $.html($(ustrs[i]).find('.pcnr_wz'))
+    if(!content){
+      continue
+    }
     content = content.replaceAll('class="lazy" src="placeHolder.png" src2','src')
     content = content.replaceAll('<br>','')
     content = content.replaceAll('onload="javascript:if(this.width>760)this.width=760"','')
@@ -74,7 +75,23 @@ function getArticle(articalBody) {
     content = content.replaceAll('align="center"','')
     content = content.replaceAll('data-type="contentImage"','')
     // content = content.replaceAll('class="pcnr_wz"','')
+    content = content.replaceAll('class="pcnr_wz" userattr="1116585"','')
     content = content.replaceAll('onclick="opennewimg(this)"','')
+    content = content.replaceAll('class="ycCss" rel="nofollow" style="color:#333;border-bottom:1px dotted #333;"','')
+    content = content.replaceAll('<span style="display:none;">[淘股吧]</span>','')
+    content = content.replaceAll('class="ycCss"style="color:#5193C7;text-decoration:underline;','')
+    content = content.replaceAll('<img src="https://css.taoguba.com.cn/images/face/018.png" width="30px" height="30px/">','☺')
+    content = content.replaceAll('  ','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    // content = content.replaceAll('','')
+    content = content.replaceAll('imgsrc','img src')
+    content = content.replaceAll('\n','')
     content = content.replace(/data-original="[\w:\/\."]*/gi,'')
     content = content.replace(/\r\n/,'')
     // console.log(time);
@@ -94,6 +111,8 @@ async function main(id) {
   mdFile = './data/' + id + '.MD'
   htmlFile = './data/' + id + '.html'
   txtFile = './data/' + id + '.txt'
+
+
 
   await getOnePageData(1)
    
