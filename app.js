@@ -14,5 +14,11 @@ const taoguba = require('./src/taoguba.js')
 
 
 
-taoguba(1477629)//blogId
- 
+//taoguba(1477629,1116585)//blogId，userId // 涅盘重升 100W到一亿
+// taoguba(1414341,1116585)//blogId，userId // 涅盘重升 250W
+
+// taoguba(2031715,1035186)//blogId，userId // 涅盘重升d 
+
+// taoguba(1197920,154034) //赵老哥，八年一万倍
+// taoguba(408863,134434)
+taoguba(2881676,2101931)
